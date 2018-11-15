@@ -32,7 +32,8 @@ fi
 # Destroy vagrant environment and DB dump
 # SSH into box and dump all databases
 echo 'Dumping databases to root and destroying VM...'
-$(vagrant up)
+$(vagrant reload)
+$(vagrant ssh -c "/usr/bin/mysqldump -u root -proot --all-databases > /var/www/public/all_dbs.sql && exit")
 $(vagrant ssh -c "/usr/bin/mysqldump -u root -proot --all-databases > /var/www/public/all_dbs.sql && exit")
 $(vagrant destroy --f )
 $(cp public/all_dbs.sql all_dbs.sql)

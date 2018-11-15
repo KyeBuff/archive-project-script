@@ -1,3 +1,10 @@
+# Check if in vagrant directory
+vagrantfile_exists=$(ls Vagrantfile)
+if [[ ${#vagrantfile_exists} -eq "0" ]]; then
+    echo 'Failed - please run this command in the directory of the Vagrantfile'
+    exit 1
+fi
+
 # Copy wp-config to root if exists
 wp_config_exists=$(ls public/wp-config.php)
 if [[ ${#wp_config_exists} -ne "0" ]]; then
@@ -12,14 +19,20 @@ if [[ ${#uploads_folder_exists} -ne "0" ]]; then
    $(cp -r  public/wp-content/uploads uploads)
 fi
 
-# Destroy vagrant environment and DB dump
+# Copy uploads to root if exists
+htaccess_exists=$(ls public/.htaccess)
+if [[ ${#htaccess_exists} -ne "0" ]]; then
+    echo 'Copying .htaccess to root'
+   $(cp -r  public/.htaccess .htaccess)
+fi
 
+# Destroy vagrant environment and DB dump
 # SSH into box and dump all databases
 echo 'Dumping databases to root and destroying VM...'
-# Vagrant commands chained on the end to ensure DB dumped before destroy
-$(vagrant ssh -c "cd /var/www/public/ && mysqldump -u root -proot --all-databases > all_dbs.sql" && vagrant destroy --f && cp public/all_dbs.sql all_dbs.sql)
-
-$(rm -rf public)
+$(vagrant up)
+$(vagrant ssh -c "mysqldump -u root -proot --all-databases > /var/www/public/all_dbs.sql && exit")
+$(vagrant destroy --f )
+$(cp public/all_dbs.sql all_dbs.sql)
 
 echo 'Compressing project folder...'
 
@@ -39,6 +52,3 @@ $(rm -rf public && tar -zcvf ${stripped_hostname}.tar.gz . && cp ${stripped_host
 
 $(cd .. && rm -rf ${wd})
 
-# Prune VMs
-echo 'Pruning VMs'
-$(cd .. && vagrant global-status --prune)

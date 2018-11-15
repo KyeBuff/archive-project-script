@@ -1,7 +1,7 @@
 # Check if in vagrant directory
 vagrantfile_exists=$(ls Vagrantfile)
 if [[ ${#vagrantfile_exists} -eq "0" ]]; then
-    echo"Failed - please run this command in the project directory with Vagrantfile"
+    echo"Failed - please run this command in the same directory as the project's Vagrantfile"
     exit 1
 fi
 
